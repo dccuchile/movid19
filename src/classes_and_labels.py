@@ -134,7 +134,6 @@ train_data = [
         'Porque he mantenido cuarentena preventiva y limitado el contacto a personas ajenas a mi grupo familiar al mínimo',
         'Porque hago cuarentena y no me pareció importante',
         'Considero que no tengo riesgo',
-        'Soy médico',
     ],
 
     # Cluster 6: Saturación del sistema de salud
