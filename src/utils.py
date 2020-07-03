@@ -13,11 +13,11 @@ def date_to_int(date_text):
     date = date_text.split()[0]
     return int(date)
 
-def read_file(infile_name, should_ignore=['NA'], 
+def read_movid_file(infile_name, text_field,
+              should_ignore=['NA'], 
               after=None,
               id_field = 'pob_id', 
-              date_field = 'fecha_obs',
-              text_field = 's3_cons_otra_TEXT'):
+              date_field = 'fecha_obs'):
     
     text_dict = {}
     with open(infile_name) as infile:
@@ -147,21 +147,24 @@ def to_vector_batch(list_of_texts, tokenizer, model, batch_size=None, device='cp
         print('\ndone')
     return embs
 
-def generate_bert_emb_dict(text_dict, tokenizer, model, batch_size=50,
+def generate_bert_emb_dict(text_dict, tokenizer, model, batch_size=50, device='cpu'
                              verbose=True, debug=False, debug_N=200):
     list_of_keys = list(text_dict.keys())
     list_of_text = [prepare_text_for_bert(text_dict[k]) for k in list_of_keys]
     if debug:
         list_of_keys = list_of_keys[:debug_N]
         list_of_text = list_of_text[:debug_N]
-    embs = to_vector_batch(list_of_text, tokenizer, model, batch_size)
+    embs = to_vector_batch(list_of_text, tokenizer, model, batch_size=batch_size, device=device)
     emb_dict = {}
     for emb, id_t in zip(embs, list_of_keys):
         emb_dict[id_t] = emb
     return emb_dict
 
 def out_emb_line(emb):
-    line = [str(n) for n in emb]
+    if type(emb) == torch.Tensor:
+        line = [str(n.item()) for n in emb]
+    else:
+        line = [str(n) for n in emb]
     line = '\t'.join(line) + '\n'
     return line
 
