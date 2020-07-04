@@ -134,6 +134,7 @@ def to_vector_batch(list_of_texts, tokenizer, model, batch_size=None, device='cp
         if device:
             model_input = model_input.to(device)
         output_embs = model(model_input)[0].data
+        # el output es el promedio (podría ser el embedding de CLS también)
         embeddings = output_embs.mean(dim=1)
         embeddings = embeddings.to('cpu')
         embs_list.append(embeddings)
@@ -147,7 +148,7 @@ def to_vector_batch(list_of_texts, tokenizer, model, batch_size=None, device='cp
         print('\ndone')
     return embs
 
-def generate_bert_emb_dict(text_dict, tokenizer, model, batch_size=50, device='cpu'
+def generate_bert_emb_dict(text_dict, tokenizer, model, batch_size=50, device='cpu',
                              verbose=True, debug=False, debug_N=200):
     list_of_keys = list(text_dict.keys())
     list_of_text = [prepare_text_for_bert(text_dict[k]) for k in list_of_keys]
