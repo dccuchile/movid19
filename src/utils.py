@@ -25,15 +25,17 @@ def read_movid_file(infile_name, text_field,
         c = 0
         for row in reader:
             k = row[id_field]
-            d = date_to_int(row[date_field])
+            d_t = row[date_field]
+            d = date_to_int(d_t)
             if after and d <= after:
                 continue
             text = row[text_field]
             if text not in should_ignore:
-                if (k,d) in text_dict:
+                if (k,d_t) in text_dict:
+                    print('repetido',k,d)
                     k = k + f'_{c}'
                     c += 1
-                text_dict[(k,d)] = text
+                text_dict[(k,d_t)] = text
     return text_dict
 
 
@@ -69,7 +71,7 @@ def load_we(wordvectors_file, mode, limit=100000):
         print('mode debe ser vec o bin')
     return wordvectors
 
-def to_vector(text, we, verbose=True):
+def to_vector(text, we, verbose=True, random_if_not_possible=True):
     tokens = tokenize(text)
     tokens = delete_ignored_tokens(tokens)
     vec = np.zeros(300)
@@ -82,6 +84,9 @@ def to_vector(text, we, verbose=True):
     if norm(vec) == 0 or n == 0:
         if verbose:
             print('not possible to create vector for:', tokens)
+        if random_if_not_possible:
+            vec = np.random.uniform(-1,1,(300))
+            vec = vec / norm(vec)
         return vec
     else:
         vec = vec / n
@@ -176,7 +181,8 @@ def out_text_line(text):
     line += '\n'
     return line
 
-def save_emb_and_meta(text_dict, emb_dict, outfilename_we, outfilename_metadata):
+def save_emb_and_meta(text_dict, emb_dict, outfilename_we, outfilename_metadata, save_ids=False, outfilename_ids=None):
+    ids_list = []
     with open(outfilename_we,'w') as outfile_we, open(outfilename_metadata,'w') as outfile_metadata:
         for id_t in emb_dict:
             text = text_dict[id_t]
@@ -186,3 +192,12 @@ def save_emb_and_meta(text_dict, emb_dict, outfilename_we, outfilename_metadata)
             emb = emb_dict[id_t]
             emb_line = out_emb_line(emb)
             outfile_we.write(emb_line)
+            ids_list.append(id_t)
+
+    if save_ids:
+        if not outfilename_ids:
+            outfilename_ids = outfilename_metadata + '.ids'
+        with open(outfilename_ids, 'w') as outfile_ids:
+            for id_t in ids_list:
+                ids_line = ','.join([str(id_part) for id_part in id_t]) + '\n'
+                outfile_ids.write(ids_line)
